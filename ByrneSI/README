@@ -1,0 +1,30 @@
+% ----- READ ME -----
+
+This folder constains the supplimentary information (SI) for "Radiative forcings for 28 potential Archean greenhouse gases" by B.Byrne and C. Goldblatt (2014)
+
+From top to bottom the directory structure of the SI is:
+
+1) Gas name.
+
+2) N2 pressure. For example, N2_1bar for runs with 1 bar of N2.
+
+3) Gas abundance. Given as conc_*, where * is the negative log (base 10) of the abundance. For example, conc_2 indicated the runs with an abundance of 10^(-2) = 0.01.
+
+The fluxes for each cloud combination and the atmospheric structures are given as text files for each case. 
+
+The atmospheric structure is given in the file named "GAM.atm" and contains colums with the atmospheric pressure (Pa), temperature (K) and the mass mixing ratios of the atmospheric constituents.
+
+The radiative fluxes are given in text files which are named cloud_x_y_z.hrt where x,y and z are 0 if there are no clouds in in this run or 1 if there are clouds. x represents high clouds, y represents middle clouds, and z represents low clouds.
+
+
+
+----- New folder version for use with AtmAmm 4-box model -----
+
+Edited on March 16, 2018 by Forest Pimm.
+
+Supplimentary information now covers the 4 gases used in the radiative forcing script titled rf_parameter_calc.m in AtmAmm/RF_calc.
+
+Folder has been reduced for ease of data finding and storage purposes.
+
+
+
