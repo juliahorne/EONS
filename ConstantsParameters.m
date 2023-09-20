@@ -393,10 +393,10 @@ td.terrk  = -log(1/1e12) .* (1/td.transitionfungi);% start at 1e-12, end at 1
 % Calculate eference RFs for a range of pCO2, pNH3 values
 gastype = {'CO2','CH4','N2O','NH3'};
 % read radiative forcing data from Byrne & Goldblatt, 2014 (Climates of the Past- Copernicus)
-addpath ~/EONS/ByrneSI/
+addpath ./ByrneSI/
 for ii = 1:length(gastype)
     gasname = gastype{ii}; 
-    addpath(['~/EONS/ByrneSI/',gasname]);                                  % add each folder in Byrne SI to the path
+    addpath(['./ByrneSI/',gasname]);                                       % add each folder in Byrne SI to the path
     % inputs names of folders starting with 'conc_' (eg. 'conc_2.2')
     c_file = dir(['ByrneSI/',gastype{ii},'/N2_1bar/']);                    % only looking at 1 bar atm
     c_fileref = {c_file.name};

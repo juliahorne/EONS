@@ -16,7 +16,7 @@ end
 % Reading from some figures, we estimate duration of different MIF-S
 % signals and plot these separately as solid lines (start-finish) and
 % arrows (up/down depending on min/max estimates)
-addpath ~/EONS/arrow.m   
+addpath ./arrow.m   
 
 % import the CSV file of different oxygen level estimates
 warning('off','all');                                           % ignore warnings re: column header data IDGAF
