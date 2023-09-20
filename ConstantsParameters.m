@@ -105,7 +105,7 @@ atm.D.CO2      = 1.45e-5;          % cm2/s; diffusion constant CO2 (CRC Handbooo
 atm.D.CH4      = 1.55e-5;          % cm2/s; diffusion constant CH4 (CRC Handboook, 98th Ed.)
 atm.D.O2       = 1.78e-5;          % cm2/s; diffusion constant O2 (CRC Handboook, 98th Ed.)
 atm.kesc       = 2.5e13;           % H2 molecules/cm2 s; constant H-escape rate (via Claire et al. 2006, from Walker 1977)
-atm.Tx         = 250;              % K; temperature at which water vapor feedback is unnecessary - used for temp param
+atm.Tx         = 250;              % K; temperature below which water vapor feedback is unnecessary - used for temp param
 
 % ---------------------------- entire earth -------------------------------
 ea.csa         = (1/3).*ea.sa;     % m^2; continental surface area
@@ -237,7 +237,8 @@ sed.diff.TA    = sed.diff.HCO3;    % m2/yr; alkalinity diffusion
 
 % -------------------------- solar constants ------------------------------
 S.Pref         = 1361;             % W/m2; present day solar constant (Fs)
-S.Aref         = 0.8*S.Pref;       % W/m2; solar constant during the Eoarchean
+S.Aref         = (1-(0.38.*-4e9./4.55e9)).^(-1).*S.Pref;% W/m2; solar constant during the Eoarchean, 4 Ga (using Gough 1981 formulation)
+S.Href         = (1-(0.38.*-4.5e9./4.55e9)).^(-1).*S.Pref;% W/m2; solar constant during the Hadean, 4.5 Ga (using Gough 1981 formulation)
 
 % ----------------------------- fractions ---------------------------------
 f.Ashelf       = sed.sa.n./oc.sa;  % fraction of shelf surface area to total ocean surface area 
@@ -262,15 +263,15 @@ Ksens.On = 20e-6;                  % mol/L; O2 sensivity in nitr (Fennel et al. 
 Ksens.Nn = 5.14e-6./const.mm.NH4;  % mol/L; NH4 sensivity in nitrification (from 5.14 mg/L, Dincer + Kargi, 2000)
 Ksens.Nd = 0.1e-6./const.mm.NO3;   % mol/L; NO3 sensivity in denitrification (from 0.1-0.3 mg/L, Dincer + Kargi, 2000) -  use lower threshold
 Ksens.Oor= 12e-6;                  % mol/L; O2 sensivity in remineralization (from 4-12e-6 mol/L, Laufkotter et al. 2017) - use higher threshold
-Ksens.Omt = 5.7e-6;                % mol/L; O2 sensivity methanotrophy (from 5.7 µM, Ren et al. 1997)
+Ksens.Omt = 5.7e-6;                % mol/L; O2 sensivity methanotrophy (from 5.7 ÂµM, Ren et al. 1997)
 Ksens.Hrw = 10^(-7);               % mol/L; sensitivity [H] in reverse weathering (ie. at pH = 7) 
-Ksens.FeII= 400e-6;                % mol/L; assumed shelf/surface ocean [Fe(II)] in ferruginous Archean ocean (> 20 - 928 µM; Swann et al. 2020, table 1)
+Ksens.FeII= 400e-6;                % mol/L; assumed shelf/surface ocean [Fe(II)] in ferruginous Archean ocean (> 20 - 928 ÂµM; Swann et al. 2020, table 1)
 
 % Half-saturation concentrations for inhibition (K_inhib)
 Kin.Nm = 10e-6;                    % mol/L; NO3 inhibiting methanogenesis (anoxic remin; Van Cappellen + Wang, 1995)
 Kin.Od = 205e-9;                   % mol/L; O2 inhibiting denitrification (Tiano + Dalsgaard et al, 2014)
 Kin.Oar= 8e-6;                     % mol/L; O2 inhibiting anoxic remin (Van Cappellen and Wang, 1995) -- functionally equivalent to Ksens.Oor
-Kin.Hn = 10^(-8)  ;                % mol/L; inhibition [H] in nitrification (8±0.5 pH, Dincer + Kargi, 2000)
+Kin.Hn = 10^(-8)  ;                % mol/L; inhibition [H] in nitrification (8Â±0.5 pH, Dincer + Kargi, 2000)
 Kin.Hd = 10^(-7.5);                % mol/L; H inhibiting denitrification (from optimal denit 7-8 pH, Dincer + Kargi, 2000)
 Kin.Oap= 0.2e-6./const.mm.O2;      % mol/L; O2 inhibiting photoferrotrophy (assuming that this can only occur in anoxic settings, [O2] < 0.2 mg/L; Crowe et al. 2008)
 
@@ -499,36 +500,35 @@ function bb = UnpackBB(gs,const,S,ea,atm)
             case 'mod'
                 sun = S.Pref;
             otherwise
-                sun = S.Aref;
+                sun = S.Aref; % solar constant in Eoarchean
         end
         dif.(era{ie}) = (const.bol.*(289^4) - sun./4.*(1-ea.alb));  % difference between in-out radiation 
     end
+    co2pal = atm.CO2pal./atm.mol;
     % METHOD A:
-    % first look up the RFs corresponding to 4e-4, 4e-2
-    Aco2a = find(bb.c.CO2>2e-2 & bb.c.CO2<5e-2); 
-    Arfa_range = bb.rf.CO2(Aco2a); 
-    rfa.A = mean(Arfa_range); 
-    Aco2m = find(bb.c.CO2>2e-4 & bb.c.CO2<5e-4); 
-    Arfm_range = bb.rf.CO2(Aco2m); 
-    rfm.A = mean(Arfm_range); 
+    % first look up the RFs corresponding to 300 ppm and x300ppm for archean
+    palCO2.A = 150; % reading off of figure 4a (Goldblatt, McDonald, and McCusker, 2021)
+    rfm.A = RFInterp(co2pal,'CO2',bb);
+    rfa.A = RFInterp(palCO2.A*co2pal,'CO2',bb);
     
     % METHOD B:
     % assume that the minimum difference between the archean and modern
     % earth temperatures is 30-50 W/m2, such that RF_mod = 35 W/m2 @ 280 ppm
     % CO2, and that RF_arc = RF_mod + (30-50) W/m2. Still use Byrne's data to
     % find the appropriate RF for the modern level of CO2. 
-    Bco2m = find(bb.c.CO2>2e-4 & bb.c.CO2<5e-4); 
-    Brfm_range = bb.rf.CO2(Bco2m); 
-    rfm.B = mean(Brfm_range);
+    rfm.B = rfm.A; % ~ 33 W/m^2 at 280 ppm
     rfa.B = rfm.B + 30; 
-
+    Bco2a = find(bb.rf.CO2>(rfa.B-5) & bb.rf.CO2<(rfa.B+5)); %find the [CO2] corresponding to this RF
+    palCO2.B = bb.c.CO2(Bco2a(end)).*atm.mol./atm.CO2pal; 
+    
     %% Use RFs to find a and b forcing constants, choosing either method A or B
     % a = arc_dif/(rfa^b); 
     % arc_dif/(rfa^b)(rfm^b) = mod_dif --> mod_dif/arc_dif = rfm^b/rfa^b -->
     % mod_dif/arc_dif = (rfm/rfa)^b --> b = ln(mod_dif/arc_dif)/ln(rfm/rfa)
     bb.method = 'A';%'B';% 
-    bb.b = log(dif.mod./dif.arc)./log(rfm.(bb.method)./rfa.(bb.method)); 
-    bb.a = dif.arc./(rfa.(bb.method).^bb.b);
+    bb.aPAL = palCO2.(bb.method);                                        % archean PAL CO2
+    bb.b = log(dif.mod./dif.arc)./log(rfm.(bb.method)./rfa.(bb.method)); % constant b in aRF^b
+    bb.a = dif.arc./(rfa.(bb.method).^bb.b);                             % constant a in aRF^b
 
 end
 
