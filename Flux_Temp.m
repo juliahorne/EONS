@@ -26,7 +26,7 @@ Fs = (rf.sc./4).*(1-v.ea.alb);               % W/m2; solar energy influx
 rf.t = 0;
 for ig = 1:length(gg) 
     mr.(gg{ig}) = ra.(gg{ig}) ./ v.atm.mol;  % mixing ratio
-    [rf.(gg{ig})] = RFInterp(mr.(gg{ig}),gg{ig},v); 
+    [rf.(gg{ig})] = RFInterp(mr.(gg{ig}),gg{ig},v.bb); 
     if rf.(gg{ig}) < 0 % at extremely low pNH3, the radiative forcing may go negative!
         rf.(gg{ig}) = zeros(size(rf.(gg{ig})));
     end
