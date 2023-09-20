@@ -1,5 +1,5 @@
 # EONS
-## Earth Oxygenation and Natural Systematics: A biogeochemical model of Earth's surface evolution spanning 4.5 billion years
+## Earth Oxygenation and Natural Systematics: A biogeochemical model of Earth's surface evolution spanning 4 billion years
 
 *Version 1.0 - 2023*
  
@@ -14,9 +14,10 @@
 The model uses a system of ordinary differential equations (ODEs) describing movement of and reactions between several species in the Earth's surface reservoirs. These ODEs are evaluated through time by MATLAB's ode15s solver for stiff systems. This model was developed in MATLAB versions 2019A and 2021A. Users running with earlier or much later versions may experience some issues with in-built function calls. 
 
  ## COMPONENTS
- The entire model is run in the ```Run_EONS.m``` master script; this produces a nominal run as described in the published (TBD) paper, as well as the mantle sensitivity testing and oxygen history comparison plots therein. Functions for reproducing the plots in that paper are included at the end of each section in the master script; upon downloading the .zip file and adding the necessary folders to their path, the user should be able to run only that script to return all figures from the paper.
+ The entire nominal model run as described in the published (TBD) paper is produced by the ```Run_EONS.m``` master script, as well as all output figures and oxygen history comparison plots. Mantle sensitivity tests are produced by running the separate ```Run_MantleTest.m``` script, which produces a singular figure.
+ Functions for reproducing the plots in that paper are included at the end of each section in the master script; upon downloading the repository and adding the necessary folders to their path, the user should be able to run only these two scripts to generate all figures from the paper.
  
- Everthing included in the .zip file falls into four categories:
+ Everthing included in the repository falls into four categories:
  
 <details>
 <summary> Functions comprising the model</summary>
@@ -44,13 +45,13 @@ The model uses a system of ordinary differential equations (ODEs) describing mov
    |-----:|-----------| -----------|
    |```TunableParameters.m ```  |all tunable model parameters                              | ```inp``` |
    |```ConstantParameters.m ``` | all constants and conversion values                      | ```v``` |
-   |```LiteratureReference.m ```|compilation of literature estaimtes for fluxes/reservoirs | ```rx```,```rxr```,```rflux```,```fluxx``` |
+   |```LiteratureReference.m ```|compilation of literature estimates for fluxes/reservoirs | ```rx```,```rxr```,```rflux```,```fluxx``` |
    
  </details>
 
  <details>
 <summary> Ancillary functions/scripts/folders called by the main model functions </summary>
-  These are used by main model functions to evaluate different relationships (ie. weathering sensitivities to CO2 and temperature) or to use for parameterizing climate effects from greenhouse gas partial pressures (ie. TempParam.m and RFInterp.m calculate climate constants and radiative forcings using the ByrneSI folder model output). 
+  These are used by main model functions to evaluate different relationships (ie. weathering sensitivities to CO2 and temperature) or to use for parameterizing climate effects from greenhouse gas partial pressures (ie. TempParam.m and RFInterp.m calculate climate constants and radiative forcings using the ByrneSI model output folder). 
   
    | Name | Purpose | Output structure |
    |-----:|-----------| -----------|
@@ -85,8 +86,8 @@ The model uses a system of ordinary differential equations (ODEs) describing mov
    | Name | Purpose | Output structure |
    |-----:|-----------| -----------|
    | ```SumAllSpecies.m ```   | total all species, elements through time in a model run (mass tracking) | ```totalres```, ```specres``` |
-   | ```MassConservation.m ```| using SumAllSpecies.m, plot species/element reservoirs and net change   |  |
-   | ```DetectElement.m```    | called by SumAllSpecies.m, see if element X exists in species Y         |  |
+   | ```MassConservation.m ```| calls ```SumAllSpecies.m```, plots species/element reservoirs and net change   |  |
+   | ```DetectElement.m```    | called by ```SumAllSpecies.m```, sees if element X exists in species Y         |  |
    
   </details>
 
@@ -105,17 +106,18 @@ The model uses a system of ordinary differential equations (ODEs) describing mov
    * ```sed```   - sediment constants (reactive layer depth, diffusivity for species, etc)
    * ```f```     - constant fractions (subduction, area of shelf sediments, etc)
    * ```spx```   - speciation constants (for equilibrium speciation)
+   * ```tp```    - temperature parameterization constants
    * ```td```    - time dependent forcings constants (initialization times, duration of transitions, etc)
    * ```Ki```,```Ks``` - inhibition/sensitivity thresholds for limitations
 
-Tunable parameters are included in the ```inp``` structure, and can be modified by the user in sensitivity tests like the example mantle reductant influx sensitivity test detailed in the paper and included in section 2 of the master script. 
+Tunable parameters are included in the ```inp``` structure, and can be modified by the user in sensitivity tests like the example mantle reductant influx sensitivity test detailed in the paper and produced by running ```Run_MantleTest.m```. 
 
 Concentrations found from evaluating carbonate or nitrogen speciation states in ```Flux_Spec.m``` are returned in the ```conc``` structure, in units of mol/kg; this function computes the concentrations of implicit species, including those not explicitly tracked in the model reservoirs (ie. DIC is an explicitly tracked species, but includes the implicit species CO<sub>2</sub>, CO<sub>3</sub><sup>2-</sup>, and HCO<sub>3</sub><sup>-</sup>). Concentrations of any dissolved species in the ocean, implicit or explicit, are calculated in the ```VolumetricConcentrations.m``` function in units of mol/m<sup>3</sup> and returned in the ```c``` structure. Both ```conc``` and ```c``` use the same organization as the reservoir ```r``` structure.
      
 Functions beginning with ```plot_``` denote plotting assistants; these help produce output plots consistent with the EONS publication. 
 
 ## STEP BY STEP INSTRUCTIONS FOR STARTUP
-1. Download the .zip file for the EONS model repository
+1. Download the EONS model repository
 2. Open/download MATLAB version 2019a - 2023b (other versions may need reviewing for outdated function usage)
 3. Running the ```ConstantsParameters.m``` script should add all the files and folders to your path (with the exception of ```arrow.m``` function, which is added when ```Plot_OxygenHistory.m``` is called); this script is called by the master script. Model functions/scripts/folders should appear in the *Current Folder* window; ensure that all included subfolders are highlighted. To add the EONS folder and all subfolders to your path:
    - option 1: type
@@ -136,13 +138,13 @@ Functions beginning with ```plot_``` denote plotting assistants; these help prod
 
   *Add to path* >> *Selected folders and subfolders* 
 
-4. Open ```Run_EONS.m``` and run the desired sections
-   - highlight individual sections (separated by ```%%``` commented lines) by clicking on the box and use command+enter to evaluate, or in the *Editor* tab select *Run Section*
-   - run the entire script at once by using *Run* in the *Editor* tab
+4. Produce a nominal model run by:
+   - option 1: typing *Run_EONS* into the command window 
+   - option 2: open ```Run_EONS.m```, run the entire script using *Run* in the *Editor* tab
 
-Note: a single model run takes **15-30 minutes on average** to evaluate, and the mantle sensitivity tests include 20 such runs evaluated using MATLAB's parallel processing functionality. We recommend running each section individually.
+Note: a single model run takes **15-30 minutes on average** to evaluate, and the mantle sensitivity tests include 20 such runs evaluated using MATLAB's parallel processing functionality.
 
-Each section of the master script includes plotting function calls and saves the run output as a file. Saved .mat files will end up in the path folder unless otherwise designated by the user.  Section 1 produces a nominal run from Hadean to modern conditions and plots showing system evolution, oxygen history versus proxy record, and nutrient limitations. Section 2 runs the mantle reductant sensitivity test and plots the results in a single figure. 
+Each ```Run_``` script includes plotting function calls and saves the run output as a file. Saved ```.mat``` files will end up in the path folder unless otherwise designated by the user. 
 
 See the attached flow chart for a visualization of how functions and scripts relate within the EONS model.
 
