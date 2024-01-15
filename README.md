@@ -148,4 +148,5 @@ Each ```Run_``` script includes plotting function calls and saves the run output
 
 See the attached flow chart for a visualization of how functions and scripts relate within the EONS model.
 
-![EONS_FlowChart.pdf](https://github.com/juliahorne/EONS/files/12053244/EONS_FlowChart.pdf)
+![EONS_FlowChart.pdf](https://github.com/juliahorne/EONS/files/12677717/EONS_FlowChart.pdf)
+
