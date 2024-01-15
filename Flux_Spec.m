@@ -11,6 +11,12 @@
 % to be downloaded and included on your path). Default is the modified 
 % polynomial - assign a different one as an added 'inp' input 'Poly'
 
+% NOTE: this solver only needs reservoirs for TA, DIC, and RN, in addition
+% to a value for surface temperature, in order to solve for concentrations;
+% if solving for speciation values outside of a model run, the user can opt
+% to only enter values for surface DIC, TA, RN, etc. and this function will
+% still work. 
+
 function conc = Flux_Spec(r,T,inp,v)
 if ~isfield('Poly','inp')
     Poly = 'N';
@@ -211,6 +217,7 @@ conc.Oa    = Oa;       % omega saturation values
 conc.Oc    = Oc; 
 conc.Csat  = Csat;
 conc.fCO2  = fCO2;     % CO2 fugacity 
+conc.Tbx   = Tbx;      % ocean water temperatures
 
 end
 
@@ -342,10 +349,18 @@ end
 
 %% Subfunction: calculate ocean box temperatures
 function Tbx = OceanTemperatures(Tsurf)
-Tbx.s         = Tsurf;                                  % K; vector for surface ocean temperature (equals temp for shallow seds)
-Tbx.n         = Tbx.s - 10;                             % K; vector for shallow sed temperature
-Tbx.d         = 4+273.15.*ones(size(Tsurf));            % K; vector for temperature of deep ocean water (~4C, most temperature variation occurs in surface ocean, so kept constant)
-Tbx.z         = 2.5+273.15.*ones(size(Tsurf));          % K; vector for temperature of deep sediment porewater (~ 2.5C, Tromp et al. 1995)
+Tbx.s         = Tsurf;                                  % K; vector for surface ocean temperature
+Tbx.n         = Tbx.s-5;                                % K; vector for shallow sed temperature
+Tbx.d         = Tbx.s-15;                               % K; vector for deep ocean temperature
+Tbx.z         = Tbx.d-2;                                % K; vector for deep sediment porewaters
+bs = fieldnames(Tbx);
+for in = 1:length(bs)
+    for it = 1:length(Tsurf)  % do not allow temperatures below the freezing point of ocean water
+       if Tbx.(bs{in})(it) < 271
+           Tbx.(bs{in})(it) = 271;
+       end
+    end
+end
 end
 
 %% ------------- Noted errata in Z+WG (2001) table A.11.1 -----------------

@@ -229,7 +229,7 @@ fp.diss.t.CaCO3.f04.pgcyr        = 0.31;             % Pg C/yr; total ocean CaCO
 fr.ammon.n.OC.ms04.molyr         = [50, 56].*1e5.*v.sed.sa.n.*1e-6; % mol/yr; oxygen consumption rate converted from  umol/cm2/yr
 fp.ammon.n.OC.ms04.molyr         = 53.*1e5.*v.sed.sa.n.*1e-6; % mol/yr; oxygen consumption rate converted from  umol/cm2/yr
 
-% Wong et al. 2019 + references therein (all converted from tonnes/megatonnes to gigatonnes)
+% Wong et al. 2019 + references therein (converted from tonnes/megatonnes to gigatonnes) 
 fr.subduct.u.CaCO3.w19.gtcyr     = [13 57].*1e-3;   % Gt C/yr; carbonate sediment subduction flux (mix of Kelemen + Manning 2015 and Dutkewicz et al. 2018 for low + high ests)
 fr.subduct.o.CaCO3.w19.gtcyr     = [20 55].*1e-3;   % Gt C/yr; carbonate sediment subduction flux (fig. 1)
 fr.volc.u.CO2.w19.gtcyr          = [70 100].*1e-3;  % Gt C/yr; CO2 volcanic flux estimate range -- assume total inorganic + organic
@@ -240,6 +240,8 @@ fr.mantle.t.CO2.w19.gtcyr        = [8 33].*1e-3;    % Gt C/yr; ^^ 21±13
 rr.u.CaCO3.w19.gtc               = fr.subduct.u.CaCO3.w19.gtcyr.*1e8;% Gt C; assuming ALL sediments are subducted, the higher-end estimate for pelagic sedimentary carbonate
 rr.o.CaCO3.w19.gtc               = fr.subduct.o.CaCO3.w19.gtcyr.*1e8;% Gt C; assuming ALL crust is subducted, the higher-end estimate for oceanic crust carbonate
 rp.u.CaCO3.w19.gtc               = mean(rr.u.CaCO3.w19.gtc); % for want of a prefered reference...
+rr.m.C.w19.pgc                   = [636,726].*1e-6.*v.m.mass./1e12;% Pg C; serpentinized mantle estimate in ppm converted to Pg C - Kelemen + Manning, 2015
+rp.m.C.w19.pgc                   = 681.*1e-6.*v.m.mass./1e12;% Pg C; serpentinized mantle estimate in ppm converted to Pg C
 
 % Clift 2017
 fp.subduct.u.C.c17.gtcyr         = 60.*1e-3;        % Gt C/yr; total sediment carbon subduction estimate
@@ -356,6 +358,7 @@ rp.a.N2.w12.tgn                  = 3.7e9;            % Tg N; atm N2
 rp.t.N2.w12.tgn                  = 1.46e6;           % Tg N; total ocean N2
 rp.t.HNO3.w12.tgn                = 6e5;              % Tg N; total ocean NO3
 rp.t.PON.w12.tgn                 = 9e4;              % Tg N; total ocean biology (LB + DB)
+rp.t.N.w12.tgn                   = 4.33e6;           % Tg N; total inorganic N
 rp.c.NH4.w12.tgn                 = 1.3e9;            % Tg N; total continental crust N
 fr.fix.s.N2.w12.tgnyr            = [110, 158];     	 % Tg N/yr; total oceanic N2 fixation
 fr.denit.t.HNO3.w12.tgnyr        = [123, 2030];      % Tg N/yr; oceanic denitrification 
@@ -471,7 +474,14 @@ rr.m.N.g09.tgn                   = [3.2 11.6].*1e9; % Tg N; upper mantle reservo
 rp.a.NH3.bg14.mol                = 6.7e-10.*v.atm.mol;% mol N; atmospheric reservoir given modern mixing ratio ~ 7e-10 
 fp.gasex.a.NH3.bg14.molyr        = 0.17.*1.3e12;     % mol N/yr; flux to atmosphere from sea surface (~ 17% of total flux)
 
+% from Johnson + Goldblatt, 2015 (table 13) - preferred (bolded) values -- converted from 1e18 kg == 1e9 Tg 
+rp.m.N.jg15.tgn                  = 24.2.*1e9;        % Tg N; total in mantle
+rr.m.N.jg15.tgn                  = [8.2, 40.2].*1e9; % Tg N; total in mantle
+rp.c.N.jg15.tgn                  = 2.8.*1e9;         % Tg N; total in BSE - mantle
+rr.c.N.jg15.tgn                  = [1, 4.667].*1e9;  % Tg N; total in BSE - mantle
+
 % all values without author-quoted ranges are given 25% error bars
+rr.t.N.w12.tgn                   = [3.25,54.125].*1e5;% Tg N; total ocean inorganic N
 rr.a.N2.w12.tgn                  = [2.8e9, 4.625e9]; % Tg N; atm N2
 rr.t.N2.w12.tgn                  = [1.095e6, 1.8e6]; % Tg N; total ocean N2
 rr.t.HNO3.w12.tgn                = [4.5e5, 7.5e5];   % Tg N; total ocean NO3
@@ -664,6 +674,7 @@ symb.c17   = {'-<','MarkerFaceColor','y'};           % == Clift 2017
 symb.m04   = {'-d','MarkerFaceColor','y'};           % == Mackenzie 2004
 symb.j00   = {'-p','MarkerFaceColor','y'};           % == Jahnke 2000
 symb.bg14  = {'-^','MarkerFaceColor','y'};           % == Byrne + Goldblatt, 2014
+symb.jg15  = {'-s','MarkerFaceColor','y'};           % == Johnson + Goldblatt, 2015
 
 %% Convert units to mol (reservoirs) and mol/yr (fluxes)
 % reservoir organization structures house units in 5th field
@@ -792,10 +803,10 @@ rxlst.u.sp = {'CaCO3','OC','PO4','ON','OP','Fe'};
 rxlst.u.au = {'w19', 'c17', '','g09',  '',  ''}; 
 rxlst.o.sp = {'NH4','CaCO3'}; 
 rxlst.o.au = {'g09', 'm04'};
-rxlst.c.sp = {'NH4','CaCO3','OC', 'PO4','CP','SP','OP','ON','Fe'}; 
-rxlst.c.au = {'w12','wa12', 'wa12','r03','j00','j00','f12','f12','rg03' };
+rxlst.c.sp = {'NH4','CaCO3','OC', 'PO4','CP','SP','OP','ON','Fe','N'}; 
+rxlst.c.au = {'w12','wa12', 'wa12','r03','j00','j00','f12','f12','rg03','jg15'};
 rxlst.m.sp = {'N','C'}; 
-rxlst.m.au = {'g09','m04'};
+rxlst.m.au = {'g09','w19'};
 rxlst.t.sp = {'H3PO4','OC','PON','N2', 'HNO3','N',  'DIC', 'CaCO3','RN','TA','O2','CH4','fixN','LB','FeOH3'}; 
 rxlst.t.au = {'woce','f12','w12','w12','w12', 'g08','ar14','f12',   '',  '',  '',  '',    'woce', '',   '' }; 
 [rx, ~,rxcol] = ReferencePlotSetup(rxlst,crp,'respref',v); 
@@ -814,15 +825,25 @@ rrlst.u.sp = {'CaCO3','OC', 'PO4','ON','OP','Fe'};
 rrlst.u.au = {'w19', 'c17','',  'g09', '', 'rg03'}; 
 rrlst.o.sp = {'NH4','CaCO3'}; 
 rrlst.o.au = {'g09', 'm04'};
-rrlst.c.sp = {'NH4','CaCO3','OC', 'PO4','CP','SP','OP','ON','Fe'}; 
-rrlst.c.au = {'w12','f12', 'f12','r03','j00','j00','f12','f12','rg03' };
+rrlst.c.sp = {'NH4','CaCO3','OC', 'PO4','CP','SP','OP','ON','Fe','N'}; 
+rrlst.c.au = {'w12','f12', 'f12','r03','j00','j00','f12','f12','rg03','jg15'};
 rrlst.m.sp = {'N','C'}; 
-rrlst.m.au = {'g09','m04'};
+rrlst.m.au = {'g09','w19'};
 rrlst.t.sp = {'N2', 'HNO3','N',  'DIC', 'PON','H3PO4','OC','RN',  'TA', 'CaCO3','O2',  'CH4','fixN','LB','FeOH3'}; 
 rrlst.t.au = {'w12','w12', 'g08','ar14','w12','woce', 'f12','woce','m96','f12',  'woce', '',  'woce','',   ''}; 
 [rxr,rsym,rrcol] = ReferencePlotSetup(rrlst,crr,'resrange',v); 
 
+% total carbon/nitrogen in crust/unreactive seds/slab, atm-ocean from sum of all reservoirs
+rx.c.C  = rx.c.CaCO3 + rx.c.OC + rx.u.CaCO3 + rx.u.OC + rx.o.CaCO3;
+rx.ao.C  = rx.t.CaCO3 + rx.t.CH4 + rx.t.LB + rx.t.DIC + rx.t.OC + rx.a.CO2 + rx.a.CH4; 
+rxr.c.C = rxr.c.CaCO3 + rxr.c.OC + rxr.u.CaCO3 + rxr.u.OC + rxr.o.CaCO3;
+rxr.ao.C = rxr.t.CaCO3 + rxr.t.CH4 + rxr.t.LB + rxr.t.DIC + rxr.t.OC + rxr.a.CO2 + rxr.a.CH4;
+rx.c.N  = rx.c.N + rx.u.ON + rx.o.NH4;
+rx.ao.N = rx.t.N + 2.*rx.a.N2 + rx.a.NH3 + rx.t.PON + rx.s.LB./v.const.CNratio;
+rxr.c.N = rxr.c.N + rxr.u.ON + rxr.o.NH4;
+rxr.ao.N = rxr.t.N + 2.*rxr.a.N2 + rxr.a.NH3 + rxr.t.PON + rxr.s.LB./v.const.CNratio;
 
+% placeholders for values we don't have
 bs = {'d','n','z'};
 for ib = 1:length(bs)
    rx.(bs{ib}).fixN = rx.(bs{ib}).RN + rx.(bs{ib}).HNO3; 

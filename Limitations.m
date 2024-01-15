@@ -40,7 +40,7 @@ end
 function lim = DefineProdLimitations(rS,conS,cS,v) 
     Kn       = 1.6e-6 .* v.conv.L2m3;                           % mol/m^3; half saturation uptake value for NH4 (from 1.6e-6 mol/L; Johnson, 2017)
     Kp       = 0.1e-6 .* v.conv.L2m3;                           % mol/m^3; half saturation uptake value for PO4 (from 0.1e-6 mol/L; Johnson, 2017)
-    Knp      = 8;                                               % dimensionless half saturation constant for Redfield sensitivity N2:PO4 (Johnson, 2017)
+    Knp      = 2;                                               % dimensionless half saturation constant for Redfield sensitivity N2:PO4 (Johnson, 2017)
     Kc       = 4.24e-6 .* v.oc.rho;                             % mol/m3; half saturation uptake of CO2 (3.5-5 µM, Burkhardt et al. 2001)
     
     T0       = 298.15;                                          % K; reference temperature for Henry's Law eqn 

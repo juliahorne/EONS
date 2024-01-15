@@ -30,12 +30,16 @@ for ix = 1:length(fxs)
                 for ibz = 1:length(bnz)
                     totflx.(fxs{ix}) = totflx.(fxs{ix}) + infx.(fxs{ix}).(bnz{ibz}); 
                 end
-            case 'forg'
+            case {'forg','bureff'} % organic C burial fraction or burial OC efficiency
                 spe = {'OC','CaCO3'}; bur = [];
                 for ie = 1:length(spe)
                     bur.(spe{ie}) = infx.burial.(spe{ie}).n + infx.burial.(spe{ie}).z;
                 end
-                totflx.(fxs{ix}) = bur.OC ./ (bur.OC + bur.CaCO3); 
+                if strcmp(fxs{ix},'forg')
+                    totflx.(fxs{ix}) = bur.OC ./ (bur.OC + bur.CaCO3); 
+                else
+                    totflx.(fxs{ix}) = bur.OC ./infx.prod.CO2;
+                end
             otherwise
             for ibx = 1:length(boxes)
                 switch fxs{ix} 

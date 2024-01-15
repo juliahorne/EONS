@@ -42,17 +42,17 @@ switch ord
         axis = 'x'; axnum = length(axs); % the axis labels to remove and the one to remain
     case 'h' % horizontal dimensions
         xy = 1; wdht = 3; % x and width
-        roomy = -1/20; tight = -1/5; % roomy and tight fractions
+        roomy = -1/20; tight = -1/6.5; % roomy and tight fractions
         axis = 'y'; axnum = 1; % the axis labels to remove and the one to remain
     otherwise
         error('Second input ORDER must be either v (vertical), or h (horizontal) squeeze direction');
 end
 switch spacing
-    case 'comfort' % more space!
+    case 'comfort' % more space! ample space for labels
         frac = roomy; 
-    case 'tight' % very little space!
+    case 'tight' % very little space! use if not including x/y labels, but maybe still good if you want ticks
         frac = tight;
-    case 'none' % obviously this means no space between subplots!
+    case 'none' % obviously this means no space between subplots! no bueno for labels or ticks (depending on font size)
         frac = 1/3.5; 
     case 'normal' % no change!
         frac = 0; 
@@ -73,9 +73,9 @@ end
        for ii = 1:length(axs)
            % if there are 2 columns, change the left adjustment to a right adjustment
            if axs(ii).Position(1) > initialleftmostpos % triggers when the x position is larger!
-              axs(ii).Position = axs(ii).Position + [0.025 0.0275 0.1225/pos 0]; 
+              axs(ii).Position = axs(ii).Position + [0.025 0.0275 0.1125/pos 0]; 
            else
-              axs(ii).Position = axs(ii).Position + [-0.035 0.0275 0.1225/pos 0]; 
+              axs(ii).Position = axs(ii).Position + [-0.035 0.0275 0.1125/pos 0]; 
            end
        end
     end

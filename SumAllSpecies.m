@@ -14,12 +14,21 @@
 % string entered here will activate the debug subfunction and return a
 % detailed output as the function searches and sums all the species. 
 
-function [totalres, specres, list, roc, rsp] = SumAllSpecies(r,conc,indx,v,dbinp)
+function [totalres, specres, list, roc, rsp] = SumAllSpecies(r,conc,indx,inp,v,dbinp)
 
 % determine if optional debugging parameter has been designated
 if ~exist('dbinp','var') % if dbinp doesn't exist assign a rando value
     dbinp = 666; 
 end 
+% determine if certain species should be considered, or treated with a
+% certain stoichiometry
+nitrate = 'NO3'; 
+if isfield(inp,'Poly')
+   switch inp.Poly
+       case 'Ns'
+           nitrate = 'HNO3'; 
+   end
+end
 
 totalres = [];                                                            % empty structure for storing total reservoirs (for elements)
 specres = [];                                                             % empty structure for storing total reservoirs (for species)
@@ -142,12 +151,16 @@ end
 stoilistall = specieslist;                                                % duplicate of the list of all model species
 for ixs = 1:length(specieslist) 
     spe = specieslist{ixs};                                               % iterate through each species in the model 
-    [specres,stoi] = continental_stoi(specres,spe,dbinp); 
+    [specres,stoi] = correct_stoi(specres,spe,dbinp); 
     % with organic matter reservoirs all assigned to true stoichiometries,
     % we make a new specieslist for the next loop and ignore the
     % redundancies (OC, OP, ON)
     switch spe
-        case {'OP','ON','OC','CP','SP'}
+        case 'HNO3'
+            if ~strcmp(spe,nitrate)
+                stoilistall(strcmp(stoilistall,spe)) = {stoi};            % switch stoichiometry of nitrate to match that used in the alkalinity treatment
+            end
+        case {'OP','ON','OC','CP','SP','HZ'}
             stoilistall(strcmp(stoilistall,spe)) = {stoi};                % add true stoichiometry of organic components to the list
         otherwise % move on
     end
@@ -171,9 +184,7 @@ for iem = 1:length(elementlist)
         % now search for all instances of the element in species names 
         [isXthere,mult] = DetectElement(spsnm,elem);                      % returns boolean t/f if the element is in the species, and how much of it is in there
         if isXthere == 1  
-            if strcmp(elem,'H') && strcmp(spes,'HZ')                      % ignore the bullshit haze reservoir
-                mult = 0; 
-            elseif strcmp(spes,'FeIIP')                                   % measured in mols P, so divide by 2!
+            if strcmp(spes,'FeIIP')                                       % measured in mols P, so divide by 2!
                 mult = mult./2; 
             end
             % add that reservoir to the total
@@ -193,29 +204,35 @@ list.elements = elementlist;
 end
 
 %% Subfunction : assign true stoichiometry to continental reservoirs for organic matter 
-function [spres,stoi] = continental_stoi(specres,spe,dbinp)
+function [spres,stoi] = correct_stoi(specres,spe,dbinp)
 spres = specres;                                                          % copy the specres structure to a new structure for posterity
 % first assign a true stoiciometry to the inputted reservoir name 
 switch spe
-    case {'ON','OP'} % in this case, NH3 and H3PO4 already exist as inorganic reservoirs, so we don't start with a 0 stoi reservoir                                                      
+    case {'ON','OP','CP','SP'} % in this case, NH3 and H3PO4 already exist as inorganic reservoirs, so we don't start with a 0 stoi reservoir                                                      
         switch spe
             case 'ON' 
                 stoi = 'NH3';
-            case 'OP'
+            otherwise
                 stoi = 'H3PO4';
         end
-        reslst = 'oc + u + c'; 
-    case 'OC' % start with 0 stoi res because we don't track CH2O as a model species
+        reslst = 's/d/n/z + u + c'; 
+    case {'HZ','OC'} % start with 0 stoi res because we don't track CH2O as a model species
         stoi = 'CH2O';
-        spres.(stoi) = 0;
-        reslst = 'oc + u + c';
-    case {'SP','CP'} % inorganic P reservoirs (silicate + carbonate) == PO4, FePO4
-            stoi = 'PO4';
-        if isfield(spres,stoi) % if this is already been initialized, ignore!
-        else
+        if ~isfield(spres,stoi)
             spres.(stoi) = 0;
         end
-        reslst = 'u + c';
+        switch spe
+            case 'OC'
+                reslst = 's/d/n/z + u + c';
+            case 'HZ'
+                reslst = 'a';
+        end
+    case 'HNO3' % may be tracked as NO3!
+        stoi = 'NO3';
+        if ~isfield(spres,stoi)
+            spres.(stoi) = 0;
+        end
+        reslst = 's/d/n/z';
     otherwise 
         stoi = spe;  
         return                                                            % return to parent function
@@ -223,7 +240,7 @@ end
 % now make a new specres entry (or add to existing ones..) for those 
 % reservoirs under the true stoichiometry 
 spres.(stoi) = spres.(stoi) + spres.(spe);
-debug_sumallspecies(dbinp,'res',stoi,reslst,0);                     % returns message if debugging
+debug_sumallspecies(dbinp,'res',spe,reslst,0);                           % returns message if debugging
 end
 
 
@@ -241,6 +258,12 @@ if strcmpi(dbg,'debug')                                                   % exec
                 disp([message1,' ', message2]);
             otherwise
                 disp(message1); 
+            end
+        case 'HZ'
+            switch e
+            case {'C','O','H'}
+                message2 = '** already counted as CH2O'; 
+                disp([message1,' ', message2]);
             end
         case 'OC'
             switch e

@@ -11,13 +11,13 @@ c       = VolumetricConcentrations(r,conc,v);               % calculate concentr
 lim     = Limitations(r,conc,c,v);                          % calculate limitations based on concentrations
 
 %% plot N and P limitations on biosphere
-figure(); hold on; box on;
-plot(t,lim.P,'color',v.color.H3PO4);
-plot(t,lim.N,'color',v.color.fixN);
-legend('H_3PO_4','fixed N','location','north','FontSize',10)
+figure(); hold on; box on; 
+plot(t,lim.RS,'color',v.color.H3PO4);
 set(gca,'FontSize',10,'xlim',[1e8 t(end)],'FontSize',10);
-ylabel('Nutrient limitation (L_{assim,x})'); 
-
+ylabel('Redfield N:P limitation (L_{Redf})'); 
+yl = yline(0.89,':'); yl.Label = {'Phosphorus limited';'';'Nitrogen limited'};
+yl.LabelHorizontalAlignment = 'center'; yl.LabelVerticalAlignment = 'middle';
+yl = yline(0.89,':');yl.LineWidth = 2;                      % plot twice to get around the label box issue
 % denote bio transitions, change to agescale, and print
 plot_Transitions(gca,v,0,'on',10);
 plot_Agescale(gca,'ga');

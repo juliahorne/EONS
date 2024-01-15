@@ -10,10 +10,10 @@ function Plot_NominalRun(out,v,figs)
     if ~exist('figs','var')
         figs = 'paper';
     end
-    xlimt = 4.35e9;     % extra length of x axis to allow inclusion of references
+    xlimt = 4.4e9;     % extra length of x axis to allow inclusion of references
     switch figs
         case 'paper' % all the figures in the published paper (with a few extras)
-            figfocus = {'geocarb','geoN','geoP','geoOC','bio','ocean','osys','temprf','atm','forcings'};
+            figfocus = {'geocarb','geoN','geoP','geoOC','bio','ocean','osys','temprf','atm','forcings','mantlesurf'};
         case 'all'
             figfocus = {'balance','bseN','subzone','Silcyc','geocarb','pH','geoN','geoP','geoOC','bio','bioN','ocean','osys','temprf','atm','forcings'};
         case 'nonSS' % show an extra billion years that is definitely NOT at steady state
@@ -24,19 +24,20 @@ function Plot_NominalRun(out,v,figs)
     end
     xlinet = 4e9; reft = 4.1e9; % when to plot reference x line and start of references
     LiteratureReference; 
-	[t,r,conc,flux,gasex,mix,rf,T,~,tdep,~,~] = UnpackOutput(out);
+	[t,r,conc,flux,gasex,mix,rf,T,inp,tdep,~,~] = UnpackOutput(out);
     cx = VolumetricConcentrations(r,conc,v); 
     % calculate total ocean reservoirs and total ocean fluxes
     spe = {'OC','ON','OP','N2','HNO3','RN','DIC','TA','O2','H3PO4','CH4','CaCO3','fixedN','FeOH3'}; 
     [tr] = TotalOceanReservoirs(r,spe); 
-    fxs = {'nitr','precip','diss','denitN','denitC','metha','ammon','revweather','burial','forg','mtrophy'};
+    fxs = {'nitr','precip','diss','denitN','denitC','metha','ammon','revweather','burial','forg','mtrophy','bureff'};
     [tf] = TotalOceanFluxes(flux,fxs); 
     bx = {'s','d','n','z'}; 
     for ib = 1:length(bx)
         r.(bx{ib}).fixN = r.(bx{ib}).RN + r.(bx{ib}).HNO3; 
         r.(bx{ib}).NP   = r.(bx{ib}).fixN ./ r.(bx{ib}).H3PO4; 
     end
-
+    [totalres,~,~,~,~] = SumAllSpecies(r,conc,inp.indx,inp,v);  % calculate total elemental masses
+    
     %% Use AGU conventions for font size, figure dimensions, etc. 
     fontsz = 9;                 % text should be >= pt 8 font
     qtrpg  = [3.74 4.52];       % in; quarter-page figure dimensions (width, height; converted from mm)
@@ -193,21 +194,21 @@ function Plot_NominalRun(out,v,figs)
                     nm{2} = {'photosynthesis','photo-ferrotrophy'};                     nm{1} = {'NH_3 + NH_4^+','HNO_3','fixed N','H_3PO_4','POC','FeO'}; 
                     yl{2} = {'Primary';'Production (mol C/yr)'};                        yl{1} = {'Surface ocean reservoir (mol)'}; 
 
-                    lbound(3) = 1e5; ubound(3) = 1e14;                                                                             
-                    xv{3} = {flux.fixation.N2./2, flux.fix.newN};                                                        
-                    ref{3}= {pref,fluxx.fix};                       
-                    rng{3}= {prng,rflux.fix};                                               
-                    c{3}  = {v.color.N2,v.color.NH3};                                              
-                    nm{3} = {'anoxygenic','oxygenic'};                                  
-                    yl{3} = {'N_2 Fixation';'fluxes (mol N/yr)'};                         
+                    lbound(3) = 1e5; ubound(3) = 1e14;                                  lbound(4) = 1e10; ubound(4) = 5e16;                                                                             
+                    xv{3} = {flux.fixation.N2./2, flux.fix.newN};                       xv{4} = {tf.ammon, tf.denitC, tf.metha};                                                       
+                    ref{3}= {pref,fluxx.fix};                                           ref{4}= {fluxx.t.oxrm,fluxx.t.denit.*(106./84.8),pref};         
+                    rng{3}= {prng,rflux.fix};                                           rng{4}= {rflux.t.oxrm,rflux.t.denit.*(106./84.8),prng};                                           
+                    c{3}  = {v.color.N2,v.color.NH3};                                   c{4}  = {v.color.CO2,v.color.HNO3,v.color.CH4};                                                
+                    nm{3} = {'anoxygenic','oxygenic'};                                  nm{4} = {'ammonification','denitrification','methanogenesis'};                                  
+                    yl{3} = {'N_2 Fixation';'(mol N/yr)'};                              yl{4} = {'Remineralization';'(mol C/yr)'};                          
 
-                    lbound(4) = 1e10; ubound(4) = 5e16;                                 lbound(5) = 0; ubound(5) = 0.5;
-                    xv{4} = {tf.ammon, tf.denitC, tf.metha};                            xv{5} = {tf.forg}; 
-                    ref{4}= {fluxx.t.oxrm,fluxx.t.denit.*(106./84.8),pref};             ref{5}= {pref}; 
-                    rng{4}= {rflux.t.oxrm,rflux.t.denit.*(106./84.8),prng};             rng{5}= {prng};
-                    c{4}  = {v.color.CO2,v.color.HNO3,v.color.CH4};                     c{5}  = {v.color.OC}; 
-                    nm{4} = {'ammonification','denitrification','methanogenesis'};      nm{5} = {''};
-                    yl{4} = {'Remineralization';'(mol C/yr)'};                          yl{5} = {'Organic carbon';'burial fraction (f_{org})'}; 
+                    lbound(5) = 0; ubound(5) = 0.5;                                     lbound(6) = 1e-2; ubound(6) = 1;
+                    xv{5} = {tf.forg};                                                  xv{6} = {100.*tf.bureff}; 
+                    ref{5}= {0.2};                                                      ref{6}= {0.2}; % Crockford et al. 2023 estimate for modern burial  efficiency percent
+                    rng{5}= {prng};                                                     rng{6}= {prng};
+                    c{5}  = {v.color.OC};                                               c{6}  = {v.color.OC}; 
+                    nm{5} = {''};                                                       nm{6} = {''};
+                    yl{5} = {'Organic carbon';'burial fraction (f_{org})'};             yl{6} = {'Organic carbon';'burial efficiency (%)'};
 
                 case 'temprf'
                     lgpos = 'west'; dim = 'v'; nmrg = [1 2]; 
@@ -323,12 +324,12 @@ function Plot_NominalRun(out,v,figs)
                     yl{9} = {'Abyssal sediment';'organic carbon (mol C)'};              yl{10} = {'Subduction zone';'fluxes (mol C/yr)'}; 
 
                 case 'geocarb'
-                    dim = [5 2]; ubound = [1e19 1e15 5e22 1e14 1e20 5e14 1e17 1e14 5e21 5e13]; lbound = [1e16 1e10 1e20 1e10 1e10 5e11 1e14 1e10 1e18 1e11]; lgpos = 'south';
+                    dim = [5 2]; ubound = [1e19 5e14 5e22 1e14 1e20 5e14 1e17 1e14 5e21 2e13]; lbound = [1e16 1e10 1e20 1e10 1e10 5e11 1e14 1e10 1e18 5e10]; lgpos = 'south';
                     xv{1} = {r.a.CO2};                                                  xv{2} = {gasex.CO2, flux.methox, flux.mantle.CO2};  
                     ref{1}= {v.atm.CO2pal};                                             ref{2}= {pref, fluxx.t.methox.*0.5, cfp.mantle.t.CO2.wa12}; 
                     rng{1}= {prng};                                                     rng{2}= {prng, rflux.t.methox.*0.5, cfr.mantle.t.CO2.wa12{1}}; 
                     c{1}  = {v.color.CO2};                                              c{2}  = {v.color.CO2, v.color.O2, v.color.CO2}; 
-                    lSty{1} = {'-'};                                                    lSty{2} = {'-','-',lsty.o};
+                    lSty{1} = {'-'};                                                    lSty{2} = {'-','-',':'};
                     nm{1} = {''};                                                       nm{2} = {'air-sea','methox','mantle'};
                     yl{1} = {'Atmospheric';'reservoir (mol CO_2)'};                     yl{2} = {'Atmospheric';'fluxes (mol CO_2/yr)'}; 
 
@@ -362,7 +363,7 @@ function Plot_NominalRun(out,v,figs)
                     c{9}  = {v.color.CaCO3,v.color.CaCO3};                              c{10}  = {v.color.CaCO3,v.color.CaCO3,v.color.CO2};
                     lSty{9} = {lsty.u,lsty.o};                                          lSty{10} = {lsty.c,lsty.o,lsty.u}; 
                     nm{9} = {'uCaCO_3','oCaCO_3'};                                      nm{10} = {'accretion','subduction','volcanism'};
-                    yl{9} = {'Abyssal sediments and slab';'reservoirs (mol C)'};        yl{10} = {'Subduction zone';'fluxes (mol C/yr)'}; 
+                    yl{9} = {'Abyssal sediments and';'slab reservoirs (mol C)'};        yl{10} = {'Subduction zone';'fluxes (mol C/yr)'}; 
 
                 case 'geoN'
                     dim = [5 2]; ubound = [1e22 1e13 5e20 5e12 1e17 5e14 1e15 5e12 1e20 1e12]; lbound = [1e6 1e0 1e15 1e5 1e6 1e8 1e6 1e6 1e14 1e2]; lgpos = 'south'; 
@@ -404,7 +405,7 @@ function Plot_NominalRun(out,v,figs)
                     c{9}  = {v.color.NH4,v.color.ON};                                   c{10}  = {v.color.ON, v.color.NH4, v.color.ON, v.color.NH4, v.color.ON, v.color.NH4, v.color.NH4};
                     lSty{9} = {lsty.o,lsty.u};                                          lSty{10} = {lsty.c,lsty.c,lsty.o,lsty.o,lsty.u,lsty.u,lsty.n}; 
                     nm{9} = {'oNH_4','uON'};                                            nm{10} = {'uON acc','oNH_4 acc','uON sub','oNH_4 sub','uON volc','oNH_4 volc','oNH_4 cryst',};
-                    yl{9} = {'Abyssal sediment and Slab';'reservoirs (mol N)'};         yl{10} = {'Subduction zone';'fluxes (mol N/yr)'}; 
+                    yl{9} = {'Abyssal sediment and';'slab reservoirs (mol N)'};         yl{10} = {'Subduction zone';'fluxes (mol N/yr)'}; 
 
                 case 'geoP'
                     dim = [4 2];  ubound = [5e20 5e11 1e16 1e13 1e14 1e12 1e19 1e11]; lbound = [1e14 1e4 5e7 1e5 1e7 1e4 1e12 1e2]; lgpos = 'south';
@@ -450,7 +451,7 @@ function Plot_NominalRun(out,v,figs)
                     yl{2} = {'Atmospheric ';'CO_2 (ppm)'};                              yl{2} = {'Weathering';'modifiers (S_x)'}; 
 
                 case 'forcings'
-                    lgpos = 'north'; dim = 'v'; frames = [frames(1) 4.25e9]; % shrink reference zone
+                    lgpos = 'north'; dim = 'v'; frames = [1e8 4.25e9]; % shrink reference zone
                     lbound(2) = 0; ubound(2) = 1.2;                                     lbound(1) = 1e11; ubound(1) = 5e12;   
                     xv{2} = (v.ea.Si./r.c.SiO3).^-1.5;                                  xv{1} = flux.mantle.FeO; 
                     ref{2}= 1;                                                          ref{1}= 3e11; 
@@ -584,6 +585,18 @@ function Plot_NominalRun(out,v,figs)
                     nm{12} = {'dissolution','sed'}; 
                     yl{12} = {'Deep ocean fluxes (mol P/yr)'};
 
+                case 'mantlesurf' % carbon/nitrogen surface flux balance  and mantle reservoir changes
+                    lgpos = 'south'; dim = 'v'; lbound = [1e-3 1e-5]; ubound = [1 1];
+                    cC = r.c.CaCO3+r.c.OC+r.u.CaCO3+r.u.OC+r.o.CaCO3; oaC = tr.DIC+tr.CaCO3+tr.CH4+tr.OC+r.a.CO2+r.a.CH4+r.s.LB;
+                    cN = r.c.NH4+r.c.ON+r.u.ON+r.o.NH4; oaN = tr.fixedN+tr.ON+2.*(tr.N2+r.a.N2)+r.a.NH3+(r.s.LB./v.const.CNratio);
+                    rxTC =  rx.m.C+rx.c.C+rx.ao.C; rxTN = rx.m.N+rx.c.N+rx.ao.N; rxrTC = rxr.m.C+rxr.c.C+rxr.ao.C; rxrTN = rxr.m.N+rxr.c.N+rxr.ao.N; % totals for reservoir estimates
+                    xv{2} = {r.m.C./totalres.C,cC./totalres.C,oaC./totalres.C};        xv{1} = {r.m.N./totalres.N,cN./totalres.N,oaN./totalres.N}; 
+                    ref{2}= {rx.m.C./rxTC,rx.c.C./rxTC,rx.ao.C./rxTC};                 ref{1}= {rx.m.N./rxTN,rx.c.N./rxTN,rx.ao.N./rxTN}; 
+                    rng{2}= {rxr.m.C./rxrTC,rxr.c.C./rxrTC,rxr.ao.C./rxrTC};           rng{1}= {rxr.m.N./rxrTN,rxr.c.N./rxrTN,rxr.ao.N./rxrTN};
+                    c{2}  = {v.color.C,v.color.C,v.color.C};                           c{1}  = {v.color.N,v.color.N,v.color.N}; 
+                    lSty{2} = {'-','--',':'};                                          lSty{1} = lSty{2};
+                    nm{2} = {'mantle','crust','atmosphere-ocean'};                     nm{1} = nm{2};
+                    yl{2} = {'Apportionment of total Carbon (mol C/total C)'};         yl{1} = {'Apportionment of total Nitrogen (mol N/total N)'};
             end
             len = length(xv);
             switch figfocus{ig}
@@ -596,8 +609,10 @@ function Plot_NominalRun(out,v,figs)
             [fg,ax] = plot_GenerateSubplots(len,dim,nmrg,'x'); 
             if ~ischar(dim) 
                 plot_SqueezeSubplots(ax,'v',dim(2),'tight','n','y');
+                refspace = 7e7; % more space between references, so as to not overlap
             elseif ischar(dim) 
                 plot_SqueezeSubplots(ax,dim,1,'tight','n','y');
+                refspace = 4e7; % less spacing required because of wider reference zone
             end
             for iv = 1:length(xv)
                 if ~iscell(xv{iv}) % single line
@@ -608,6 +623,7 @@ function Plot_NominalRun(out,v,figs)
                     plot(ax(iv),t,xv{iv},'color',c{iv});
                     PlotRefRange(ax(iv),refx,ref{iv},rng{iv},c{iv});   % plot reference and range
                 else % multiples lines
+                   count = 1;
                    for ixv = 1:length(xv{iv})
                        if exist('lSty','var')                           % if assigned line styles, use them
                            LINE = lSty{iv}{ixv};
@@ -627,11 +643,13 @@ function Plot_NominalRun(out,v,figs)
                        else 
                            pn.HandleVisibility = 'off'; 
                        end
-                       if ixv > 1
-                           reftm = refx + ixv.*6e7;                      % so the references plot side by side, not overlapping
-                           
+                       if ixv == 1 && (ref{iv}{ixv} == pref) && (rng{iv}{ixv}(1) == prng(1)) % ensures that the real references are places closest to the line instead of pushed to the right
+                           reftm = refx; 
+                       elseif ixv > 1 && (ref{iv}{ixv} == pref) && (rng{iv}{ixv}(1) == prng(1)) % ensures that the real references are places closest to the line instead of pushed to the right
+                           reftm = refx; 
                        else 
-                           reftm = refx;
+                           reftm = refx + count.*refspace;               % so the references plot side by side, not overlapping
+                           count = count + 1;
                        end
                        PlotRefRange(ax(iv),reftm,ref{iv}{ixv},rng{iv}{ixv},c{iv}{ixv},LINE); % plot reference and range
                    end
@@ -671,8 +689,10 @@ function Plot_NominalRun(out,v,figs)
                     elseif strcmp(figfocus{ig},'osys') && iv == 1
                         set(ax(iv),'yscale','log'); oyl = get(ax(iv),'ylim'); 
                         SetYLim(ax(iv),oyl,lbound(iv),ubound(iv));
-                    elseif strcmp(figfocus{ig},'bio') && iv == 5
+                    elseif strcmp(figfocus{ig},'bio') && iv >= 5
                         set(ax(iv),'yscale','log'); 
+                    elseif strcmp(figfocus{ig},'mantlesurf') 
+                        set(ax(iv),'yscale','log');
                     else
                         set(ax(iv),'yscale','lin');
                     end
@@ -714,7 +734,11 @@ function Plot_NominalRun(out,v,figs)
             end
         end
         if length(ax) > 1                                               % add labels to each subplot
-            plot_LabelSubplots(ax,'out','alpha',fontsz);
+            if ~ischar(dim)
+                plot_LabelSubplots(ax,'out','alpha',fontsz);
+            else
+                plot_LabelSubplots(ax,'out','alpha',fontsz,1);
+            end
         end
         % Generate a PDF! NOTE: the folder you save to must already exist!
         set(fg,'Units','inches','PaperUnits','inches','PaperSize',pagesz);
@@ -750,21 +774,21 @@ function PlotRefRange(ax,xval,ref,rng,color,lsty,disp)
     else % plot nothing
         return 
     end
-% plot the reference value as a filled circle and reference range as error bars
+% plot the reference value as symbol corresponding with a line style and reference range as error bars
+    switch lsty % different naming conventions THANKS MATLAB
+        case '-'
+            LSTYLE = 'solid'; mrk = 'o';
+        case ':'
+            LSTYLE = 'dotted';mrk = 's';
+        case '--'
+            LSTYLE = 'dashed';mrk = 'p';
+        case '-.'
+            LSTYLE = 'dashdot';mrk = '^';
+    end   
     if ischar(err)
-        eb = scatter(ax,xval,yval,30,color,'o');
+        eb = scatter(ax,xval,yval,30,color,mrk);
     else
-        eb = errorbar(ax,xval,yval,err(1),err(2),'o','MarkerSize',5,'color',color); 
-        switch lsty % different naming conventions THANKS MATLAB
-            case '-'
-                LSTYLE = 'solid';
-            case ':'
-                LSTYLE = 'dotted';
-            case '--'
-                LSTYLE = 'dashed';
-            case '-.'
-                LSTYLE = 'dashdot'; 
-        end            
+        eb = errorbar(ax,xval,yval,err(1),err(2),mrk,'MarkerSize',5,'color',color);          
         eb.Bar.LineStyle = LSTYLE; 
     end
     switch disp

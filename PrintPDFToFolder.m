@@ -43,7 +43,7 @@ if isfolder(stringfolder) == 0
     mkdir(pwd,FOLDER); 
 end
 
-print('-dpdf',[pwd,FOLDER,filename]);                     % print that PDF! 
+print([pwd,FOLDER,filename],'-dpdf','-r1000');             % print that PDF with a resolution of 1000 dpi - note, changing renderer to Painters will fuck with dotted/dashed lines
 system(['evince ',filename,'.pdf &']);
 
 end
