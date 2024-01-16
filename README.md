@@ -1,7 +1,7 @@
 # EONS
 ## Earth Oxygenation and Natural Systematics: A biogeochemical model of Earth's surface evolution spanning 4 billion years
 
-*Version 1.0 - 2023*
+*Version 1.0.0 - 2023*
  
 ### By Julia Horne and Colin Goldblatt
 
