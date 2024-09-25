@@ -13,8 +13,10 @@
  
 The model uses a system of ordinary differential equations (ODEs) describing movement of and reactions between several species in the Earth's surface reservoirs. These ODEs are evaluated through time by MATLAB's ode15s solver for stiff systems. This model was developed in MATLAB versions 2019A and 2021A. Users running with earlier or much later versions may experience some issues with in-built function calls. 
 
+A comprehensive overview of the model and the results from a nominal run have been published in the AGU journal G<sup>3</sup> (https://doi.org/10.1029/2023GC011252). 
+
  ## COMPONENTS
- The entire nominal model run as described in the published (TBD) paper is produced by the ```Run_EONS.m``` master script, as well as all output figures and oxygen history comparison plots. Mantle sensitivity tests are produced by running the separate ```Run_MantleTest.m``` script, which produces a singular figure.
+ The entire nominal model run as described in the published 2024 paper is produced by the ```Run_EONS.m``` master script, as well as all output figures and oxygen history comparison plots. Mantle sensitivity tests are produced by running the separate ```Run_MantleTest.m``` script, which produces a singular figure.
  Functions for reproducing the plots in that paper are included at the end of each section in the master script; upon downloading the repository and adding the necessary folders to their path, the user should be able to run only these two scripts to generate all figures from the paper.
  
  Everthing included in the repository falls into four categories:
