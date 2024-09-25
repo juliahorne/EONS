@@ -538,7 +538,7 @@ function Plot_GasRFRelationship(bb,atm)
     figure(); clf; hold on; 
     gases = {'CO2','CH4','NH3'}; 
     for ig = 1:length(gases)
-        gasdisp{ig} = plot_DescriptiveHandle('SPECIES',gases{ig}); 
+        gasdisp{ig} = [gases{ig}(1:end-1),'_',gases{ig}(end)]; 
         plot(bb.c.(gases{ig}),bb.rf.(gases{ig}),'DisplayName',gasdisp{ig}); 
     end
     xl = xline(1e-6,'--','DisplayName','1 ppmv'); xl.LineWidth = 2.5; 
@@ -546,7 +546,7 @@ function Plot_GasRFRelationship(bb,atm)
     xlabel('Gas abundance (mol_{gas} / mol_{atm})','FontSize',14); 
     ylabel('Greenhouse Forcing (W/m^2)','FontSize',14); 
     set(gca,'xscale','log'); box on; grid on; 
-    printplotpdf(20,20,'GHGvRF_1ppm');
+    
     % and show how these profiles fit with modern GHG levels and RFs
     rfrefs = [33.5,1.4,0.7]; cols = {'b','r','y'}; 
     ccrefs = [atm.CO2pal,atm.CH4pal,atm.NH3pal]./atm.mol;
@@ -554,7 +554,6 @@ function Plot_GasRFRelationship(bb,atm)
         plot(ccrefs(ir),rfrefs(ir),['o',cols{ir}],'DisplayName',[gasdisp{ir},' modern ref']);
     end
     set(gca,'ylim',[0 40]); 
-    printplotpdf(20,20,'GHGvRF_ModernRFs');
     
     % and in log!
     figure(); clf; hold on; 
